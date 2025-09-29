@@ -6,21 +6,34 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('core', '0001_initial'),
+        ("core", "0001_initial"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='RecommendationHistory',
+            name="RecommendationHistory",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('user_id', models.IntegerField()),
-                ('movie_id', models.IntegerField()),
-                ('recommended_at', models.DateTimeField(auto_now_add=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("user_id", models.IntegerField()),
+                ("movie_id", models.IntegerField()),
+                ("recommended_at", models.DateTimeField(auto_now_add=True)),
             ],
             options={
-                'indexes': [models.Index(fields=['user_id', 'movie_id'], name='core_recomm_user_id_214620_idx')],
-                'unique_together': {('user_id', 'movie_id')},
+                "indexes": [
+                    models.Index(
+                        fields=["user_id", "movie_id"],
+                        name="core_recomm_user_id_214620_idx",
+                    )
+                ],
+                "unique_together": {("user_id", "movie_id")},
             },
         ),
     ]

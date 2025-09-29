@@ -1,16 +1,16 @@
 import json
 import os
+import random
+
 import joblib
 import numpy as np
-import random
+from django.db.models import Count
 from scipy import sparse
-from core.models import RecommendationHistory
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.preprocessing import normalize
-from django.db.models import Count
-from core.models import Movie, Rating
 
+from core.models import Movie, Rating, RecommendationHistory
 
 ART_DIR = os.path.join(os.path.dirname(__file__), "artifacts")
 os.makedirs(ART_DIR, exist_ok=True)
@@ -38,6 +38,7 @@ def build_index():
 def mmr_rerank(candidate_idx, X, user_vec, k=20, lambda_=0.8):
     import numpy as np
     from sklearn.metrics.pairwise import cosine_similarity as cos
+
     chosen = []
     cand = list(candidate_idx)
     if not cand:
@@ -59,13 +60,19 @@ def mmr_rerank(candidate_idx, X, user_vec, k=20, lambda_=0.8):
     return chosen
 
 
-def recommend_for_user(user_id: int, top_k: int = 20, like_threshold: float = None, exclude_ids: set = None):
+def recommend_for_user(
+    user_id: int, top_k: int = 20, like_threshold: float = None, exclude_ids: set = None
+):
     LIKE_THRESHOLD = float(os.getenv("LIKE_THRESHOLD", "3.5"))
     like_threshold = like_threshold or LIKE_THRESHOLD
     exclude_ids = exclude_ids or set()
-    prev_recs = RecommendationHistory.objects.filter(user_id=user_id).values_list("movie_id", flat=True)
+    prev_recs = RecommendationHistory.objects.filter(user_id=user_id).values_list(
+        "movie_id", flat=True
+    )
     exclude_ids = exclude_ids | set(prev_recs)
-    liked_qs = Rating.objects.filter(user_id=user_id, rating__gte=like_threshold).values_list("movie__movie_id", flat=True)
+    liked_qs = Rating.objects.filter(
+        user_id=user_id, rating__gte=like_threshold
+    ).values_list("movie__movie_id", flat=True)
     liked = list(liked_qs)
     X = sparse.load_npz(os.path.join(ART_DIR, "matrix.npz"))
     ids = json.load(open(os.path.join(ART_DIR, "index.json")))
@@ -75,9 +82,12 @@ def recommend_for_user(user_id: int, top_k: int = 20, like_threshold: float = No
             Rating.objects.exclude(movie__movie_id__in=exclude_ids)
             .values("movie__movie_id", "movie__title")
             .annotate(cnt=Count("id"))
-            .order_by("-cnt")[: top_k]
+            .order_by("-cnt")[:top_k]
         )
-        return [{"movieId": r["movie__movie_id"], "title": r["movie__title"], "score": 0.0} for r in popular]
+        return [
+            {"movieId": r["movie__movie_id"], "title": r["movie__title"], "score": 0.0}
+            for r in popular
+        ]
     liked_idx = [id2row[m] for m in liked if m in id2row]
     if not liked_idx:
         return []

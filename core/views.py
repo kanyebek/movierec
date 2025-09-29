@@ -1,11 +1,12 @@
-from django.shortcuts import render
+from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from rest_framework import status
-from core.models import Movie, Rating
+
+from core.models import Movie
+from core.recommender.content import build_index, recommend_for_user
+
 from .serializers import MovieSerializer, RatingSerializer
-from core.recommender.content import recommend_for_user
-from core.recommender.content import build_index
+
 
 @api_view(["GET"])
 def recommend_view(request):
@@ -17,11 +18,13 @@ def recommend_view(request):
     recs = recommend_for_user(user_id, top_k=k)
     return Response(recs)
 
+
 @api_view(["GET"])
 def search_movies(request):
     q = request.GET.get("q", "")
     qs = Movie.objects.filter(title__icontains=q)[:50]
     return Response(MovieSerializer(qs, many=True).data)
+
 
 @api_view(["POST"])
 def rate_movie(request):
@@ -31,4 +34,6 @@ def rate_movie(request):
     ser.save()
     build_index()
     return Response(ser.data, status=status.HTTP_201_CREATED)
+
+
 # Create your views here.
