@@ -2,12 +2,15 @@ import json
 import os
 import joblib
 import numpy as np
+import random
 from scipy import sparse
+from core.models import RecommendationHistory
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.preprocessing import normalize
 from django.db.models import Count
 from core.models import Movie, Rating
+
 
 ART_DIR = os.path.join(os.path.dirname(__file__), "artifacts")
 os.makedirs(ART_DIR, exist_ok=True)
@@ -32,7 +35,7 @@ def build_index():
         json.dump(ids, f)
 
 
-def mmr_rerank(candidate_idx, X, user_vec, k=20, lambda_=0.7):
+def mmr_rerank(candidate_idx, X, user_vec, k=20, lambda_=0.8):
     import numpy as np
     from sklearn.metrics.pairwise import cosine_similarity as cos
     chosen = []
@@ -56,10 +59,12 @@ def mmr_rerank(candidate_idx, X, user_vec, k=20, lambda_=0.7):
     return chosen
 
 
-def recommend_for_user(user_id: int, top_k: int = 20, like_threshold: float | None = None, exclude_ids: set[int] | None = None):
+def recommend_for_user(user_id: int, top_k: int = 20, like_threshold: float = None, exclude_ids: set = None):
     LIKE_THRESHOLD = float(os.getenv("LIKE_THRESHOLD", "3.5"))
     like_threshold = like_threshold or LIKE_THRESHOLD
     exclude_ids = exclude_ids or set()
+    prev_recs = RecommendationHistory.objects.filter(user_id=user_id).values_list("movie_id", flat=True)
+    exclude_ids = exclude_ids | set(prev_recs)
     liked_qs = Rating.objects.filter(user_id=user_id, rating__gte=like_threshold).values_list("movie__movie_id", flat=True)
     liked = list(liked_qs)
     X = sparse.load_npz(os.path.join(ART_DIR, "matrix.npz"))
@@ -84,10 +89,15 @@ def recommend_for_user(user_id: int, top_k: int = 20, like_threshold: float | No
     sims = cosine_similarity(user_vec, X).ravel()
     seen = set(liked) | set(exclude_ids)
     candidates = [i for i in np.argsort(-sims) if ids[i] not in seen]
-    picked = mmr_rerank(candidates, X, user_vec, k=top_k, lambda_=0.7)
+    random.shuffle(candidates)
+    picked = mmr_rerank(candidates, X, user_vec, k=top_k, lambda_=0.95)
+    SCORE_THRESHOLD = 0.2  # You can adjust this value
     out = []
     for idx in picked:
-        mid = ids[idx]
-        m = Movie.objects.get(movie_id=mid)
-        out.append({"movieId": mid, "title": m.title, "score": float(sims[idx])})
+        if sims[idx] >= SCORE_THRESHOLD:
+            mid = ids[idx]
+            m = Movie.objects.get(movie_id=mid)
+            out.append({"movieId": mid, "title": m.title, "score": float(sims[idx])})
+            # Save to recommendation history
+            RecommendationHistory.objects.get_or_create(user_id=user_id, movie_id=mid)
     return out

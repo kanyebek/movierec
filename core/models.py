@@ -29,3 +29,15 @@ class Rating(models.Model):
     def __str__(self):
         return f"Rating {self.rating} by User {self.user_id} for Movie {self.movie.movie_id}"
 # Create your models here.
+
+class RecommendationHistory(models.Model):
+    user_id = models.IntegerField()
+    movie_id = models.IntegerField()
+    recommended_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        indexes = [models.Index(fields=["user_id", "movie_id"])]
+        unique_together = ("user_id", "movie_id")
+
+    def __str__(self):
+        return f"User {self.user_id} recommended Movie {self.movie_id}"
