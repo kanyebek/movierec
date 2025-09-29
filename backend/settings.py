@@ -30,11 +30,7 @@ SECRET_KEY = os.getenv("SECRET_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = [
-    "localhost",
-    "127.0.0.1",
-    "backend",
-]
+ALLOWED_HOSTS = ["*"]
 
 POSTGRES = os.getenv("DB_HOST")
 if POSTGRES:
@@ -61,10 +57,12 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "rest_framework",
     "core",
+    'drf_spectacular',
 ]
 
 REST_FRAMEWORK = {
     "DEFAULT_RENDERER_CLASSES": ["rest_framework.renderers.JSONRenderer"],
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
 }
 
 MIDDLEWARE = [
@@ -108,6 +106,15 @@ DATABASES = {
     }
 }
 
+SPECTACULAR_SETTINGS = {
+    "TITLE": "Post API",
+    "VERSION": "0.0.1", 
+    "SERVE_INCLUDE_SCHEMA": False,
+    "SWAGGER_UI_SETTINGS": {
+        "filter": True, 
+    },
+    "COMPONENT_SPLIT_REQUEST": True
+}
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
