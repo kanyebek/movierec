@@ -62,13 +62,11 @@ python manage.py migrate
 
 ### 3) (Optional) Load MovieLens data into the DB
 
-If a management command exists (e.g., `load_movielens`), run:
+Run:
 
 ```bash
 python manage.py load_movielens --path ./ml-latest-small
 ```
-
-If not, check `core/` for a data-loading script and run it as documented there.
 
 ### 4) Run the dev server
 
@@ -101,7 +99,6 @@ docker compose down
 > Exact routes may differ; open `backend/urls.py` and `core/views.py` to confirm.
 
 - `GET /api/movies` — list or search movies
-- `GET /api/movies/{id}` — movie details
 - `GET /api/recommend?user_id={id}` — top-N recommendations for a user
 - `POST /api/ratings` — submit a rating payload like `{ user_id, movie_id, rating }`
 
@@ -131,9 +128,8 @@ Start simple and iterate:
 Example:
 
 ```bash
-pip install -U black isort ruff pytest
+pip install -U black isort ruff
 black . && isort . && ruff check .
-pytest -q
 ```
 
 ---
