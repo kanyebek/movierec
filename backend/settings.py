@@ -29,8 +29,24 @@ SECRET_KEY = os.getenv('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    'localhost',
+    '127.0.0.1',
+    'backend',
+]
 
+POSTGRES = os.getenv('DB_HOST')
+if POSTGRES:
+    DATABASES = {
+    'default': {
+    'ENGINE': 'django.db.backends.postgresql',
+    'NAME': os.getenv('DB_NAME', 'recs'),
+    'USER': os.getenv('DB_USER', 'recs'),
+    'PASSWORD': os.getenv('DB_PASSWORD', 'recs'),
+    'HOST': os.getenv('DB_HOST', 'db'),
+    'PORT': os.getenv('DB_PORT', '5432'),
+    }
+}
 
 # Application definition
 
@@ -43,7 +59,12 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'core',
 ]
+
+REST_FRAMEWORK = {
+'DEFAULT_RENDERER_CLASSES': ['rest_framework.renderers.JSONRenderer'],
+}
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -111,7 +132,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'Asia/Bishkek'
+TIME_ZONE = 'UTC'
 
 USE_I18N = True
 
