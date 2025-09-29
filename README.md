@@ -1,5 +1,5 @@
 
-# movierec
+# MovieRec
 
 A minimal movie recommendation backend built with **Python/Django** and the public **MovieLens (ml-latest-small)** dataset. The project is structured for iterative experiments (algorithms, evaluation, and API) and ships with Docker support for quick local runs.
 
@@ -53,23 +53,14 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### 2) Set environment variables (optional)
 
-Most local defaults work out of the box. If you need to override settings, export variables like:
-
-```bash
-export DJANGO_DEBUG=1
-export DJANGO_SECRET_KEY="dev-secret"   # use a strong key in production
-export DJANGO_ALLOWED_HOSTS="*"
-```
-
-### 3) Initialize the DB
+### 2) Initialize the DB
 
 ```bash
 python manage.py migrate
 ```
 
-### 4) (Optional) Load MovieLens data into the DB
+### 3) (Optional) Load MovieLens data into the DB
 
 If a management command exists (e.g., `load_movielens`), run:
 
@@ -79,7 +70,7 @@ python manage.py load_movielens --path ./ml-latest-small
 
 If not, check `core/` for a data-loading script and run it as documented there.
 
-### 5) Run the dev server
+### 4) Run the dev server
 
 ```bash
 python manage.py runserver
@@ -134,9 +125,8 @@ Start simple and iterate:
 
 ## Development workflow
 
-- Code style: black + isort (optional)
-- Tests: `pytest` (if configured)
-- Lint: `ruff` or `flake8` (if configured)
+- Code style: black + isort
+- Lint: `ruff`
 
 Example:
 
@@ -167,6 +157,3 @@ pytest -q
 
 ---
 
-## License
-
-MIT (or specify the license you prefer).
